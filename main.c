@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <time.h>
 #include <stdlib.h>
 
 #define CLIMATEZONENUMBER 4
@@ -15,7 +16,8 @@ typedef struct _Population
 typedef struct _Individual
 {
     char state;
-    int* position;
+    int xPosition;
+    int yPosition;
     Population *population;
 } Individual;
 
@@ -51,12 +53,12 @@ void emptyGameBoard(GameBoard *gameBoard)
     {
         for(unsigned int j = 0; j < gameBoard->boardSize; ++j)
         {
-           gameBoard->board[i][j].state = 'D';
+           gameBoard->board[i][j].state = '.';
         }
     }
 }
 
-Population generatePopulation(unsigned int size, char type, char* name)
+Population* generatePopulation(unsigned int size, char type, char* name)
 {
     Population *retValue = NULL;
     if(size < MINIMALPOPSIZE)
@@ -71,43 +73,82 @@ Population generatePopulation(unsigned int size, char type, char* name)
         newPopulation->type = type;
         newPopulation->name = name;
 
-        for(unsigned int i = 0; i < newPopulation->numberOfIndividuals; ++i)
-        {
-            Individual *newIndi = malloc(sizeof(Individual));
-            newIndi->state = 'A';
-            newIndi->population = newPopulation;
-        }
-
         retValue = newPopulation;
     }
-    return *retValue;
+    return retValue;
 }
 
-void placeClimateZones(unsigned int boardSize);
-void placePopulation(GameBoard *gameBoard, Population *population)
+int isFreeSpace(GameBoard *gameBoard, unsigned int xPos, unsigned int yPos, unsigned int populationSize)
 {
-    for(unsigned int i = 0; i < gameBoard->boardSize; ++i)
+    if((xPos+populationSize <= gameBoard->boardSize) && (yPos+populationSize <= gameBoard->boardSize))
     {
-        for(unsigned int j = 0; j < gameBoard->boardSize; ++j)
+        for(unsigned int i = xPos; i < (xPos+populationSize); ++i)
         {
-            if()
+            for(unsigned int j = yPos; j < (yPos+populationSize); ++j)
             {
-
+                if(gameBoard->board[i][j].state != '.')
+                {
+                    return -1;
+                }
             }
         }
     }
+    else
+    {
+        return -1;
+    }
+    return 0;
 }
-void evolve(Individual currentIndividual);
-void nextGeneration(GameBoard *gameBoard);
-int countNeighbours(Individual currentIndividual);
-void executeClimateInflu(GameBoard *gameBoard);
-void printBoard(GameBoard *gameBoard)
+
+void placePopulation(GameBoard *gameBoard, Population *population, unsigned int xPos, unsigned int yPos)
+{
+    int x, y;
+    unsigned int i = 0;
+    while( i < population->numberOfIndividuals)
+    {
+        x = (rand()%population->size)+ xPos;
+        y = (rand()%population->size)+ yPos;
+
+        if(gameBoard->board[x][y].state != 'A')
+        {
+            gameBoard->board[x][y].state ='A';
+            gameBoard->board[x][y].population = population;
+            gameBoard->board[x][y].xPosition = x;
+            gameBoard->board[x][y].yPosition = y;
+            ++i;
+        }
+    }
+}
+
+void placeClimateZones(unsigned int boardSize);
+int findSpot(GameBoard *gameBoard, Population *population)
 {
     for(unsigned int i = 0; i < gameBoard->boardSize; ++i)
     {
         for(unsigned int j = 0; j < gameBoard->boardSize; ++j)
         {
+            if(isFreeSpace(gameBoard, i, j, population->size) == 0)
+            {
+                placePopulation(gameBoard, population, i, j);
+                return 0;
+            }
+        }
+    }
+    return -1;
+}
 
+void evolve(Individual currentIndividual);
+void nextGeneration(GameBoard *gameBoard);
+int countNeighbours(Individual currentIndividual);
+void executeClimateImpact(GameBoard *gameBoard);
+void printBoard(GameBoard *gameBoard)
+{
+    printf("\n");
+    printf("-----------------------------------------\n");
+    for(unsigned int i = 0; i < gameBoard->boardSize; ++i)
+    {
+        for(unsigned int j = 0; j < gameBoard->boardSize; ++j)
+        {
 
            printf("%c ",gameBoard->board[i][j].state);
 
@@ -118,14 +159,26 @@ void printBoard(GameBoard *gameBoard)
 
 int main()
 {
-
+    srand(time(NULL));
     unsigned int boardSize = 15;
-    unsigned int populationSize;
-    unsigned int numberOfPopulations;
+    unsigned int populationSize = 5;
+    unsigned int numberOfPopulations = 4;
 
+    Population *no1, *no2, *no3, *no4;
+    no1 = generatePopulation(populationSize, 'G', "No1");
+    no2 = generatePopulation(populationSize, 'G', "No2");
+    no3 = generatePopulation(populationSize, 'F', "No3");
+    no4 = generatePopulation(populationSize, 'F', "No4");
     GameBoard *board = malloc(sizeof(GameBoard));
     createBoard(board, boardSize);
     emptyGameBoard(board);
+    printBoard(board);
+
+
+    findSpot(board, no1);
+    findSpot(board, no2);
+    findSpot(board, no3);
+    findSpot(board, no4);
     printBoard(board);
 
     return 0;
