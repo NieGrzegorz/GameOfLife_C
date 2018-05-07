@@ -4,6 +4,8 @@
 
 #define CLIMATEZONENUMBER 4
 #define MINIMALPOPSIZE 4
+#define POPULATION_TYPE_G 'G'
+#define POPULATION_TYPE_F 'F'
 
 typedef struct _Population
 {
@@ -63,7 +65,7 @@ Population* generatePopulation(unsigned int size, char type, char* name)
     Population *retValue = NULL;
     if(size < MINIMALPOPSIZE)
     {
-        printf("Minimal population size is 4");
+        printf("Minimal population size is 4\n");
     }
     else
     {
@@ -136,19 +138,6 @@ int findSpot(GameBoard *gameBoard, Population *population)
     }
     return -1;
 }
-
-void evolve(Individual *currentIndividual, GameBoard *gameBoard)
-{
-    unsigned int sameTypeNeighbours, differentTypeNeighbours;
-    sameTypeNeigbours = countNeighbours(currentIndividual, gameBoard, currentIndividual->population->type);
-
-    if((currentIndividual->state == '.') && (numberOfNeighbours == 3))
-    {
-
-    }
-}
-
-void nextGeneration(GameBoard *gameBoard);
 int countNeighbours(Individual *currentIndividual, GameBoard *gameBoard, char type)
 {
     unsigned int x = currentIndividual->xPosition;
@@ -169,7 +158,7 @@ int countNeighbours(Individual *currentIndividual, GameBoard *gameBoard, char ty
         if((gameBoard->board[x+1][y].state == 'A') && (gameBoard->board[x+1][y].population->type == type)) numberOfNeighbours++;
         if((gameBoard->board[x-1][y+1].state == 'A') && (gameBoard->board[x-1][y+1].population->type == type)) numberOfNeighbours++;
         if((gameBoard->board[x][y+1].state == 'A') && (gameBoard->board[x][y+1].population->type == type)) numberOfNeighbours++;
-        if((gameBoard->board[x+1][y+1].state == 'A') (gameBoard->board[x+1][y+1].population->type == type)) numberOfNeighbours++;
+        if((gameBoard->board[x+1][y+1].state == 'A') && (gameBoard->board[x+1][y+1].population->type == type)) numberOfNeighbours++;
     }
     else if((currentIndividual->xPosition == gameBoard->boardSize) && ((currentIndividual->yPosition != 0) && (currentIndividual->yPosition != gameBoard->boardSize)))
     {
@@ -212,6 +201,60 @@ int countNeighbours(Individual *currentIndividual, GameBoard *gameBoard, char ty
     }
     return numberOfNeighbours;
 }
+
+void evolve(Individual *currentIndividual, GameBoard *gameBoard, Population *typeGPopulation, Population *typeFPopulation)
+{
+    char currentType, otherType;
+    unsigned int sameTypeNeighbours, differentTypeNeighbours, numberOfNeighbours;
+
+    if(currentIndividual->population->type == 'G')
+    {
+        currentType = 'G';
+        otherType = 'F';
+    }
+    else
+    {
+        currentType = 'F';
+        otherType = 'G';
+    }
+
+    if(currentIndividual->population->type == 'G')
+    {
+        sameTypeNeighbours = countNeighbours(currentIndividual, gameBoard, 'G');
+        differentTypeNeighbours = countNeighbours(currentIndividual, gameBoard, 'F');
+    }
+    else
+    {
+        differentTypeNeighbours = countNeighbours(currentIndividual, gameBoard, 'G');
+        sameTypeNeighbours = countNeighbours(currentIndividual, gameBoard, 'F');
+    }
+    numberOfNeighbours = sameTypeNeighbours + differentTypeNeighbours;
+
+    if((currentIndividual->state == '.') && (numberOfNeighbours == 3))
+    {
+        if(sameTypeNeighbours > differentTypeNeighbours)
+        {
+            currentIndividual->state = 'A';
+            if(currentType == 'G')
+            {
+                currentIndividual->population = typeGPopulation;
+                typeGPopulation->numberOfIndividuals++;
+            }
+            else
+            {
+                currentIndividual->population = typeFPopulation;
+                typeFPopulation->numberOfIndividuals++;
+            }
+        }
+    }
+    else if((currentIndividual->state == 'A') && ((numberOfNeighbours < 2) || (numberOfNeighbours > 3)))
+    {
+        currentIndividual->state = '.';
+        currentIndividual->population->numberOfIndividuals--;
+    }
+}
+
+void nextGeneration(GameBoard *gameBoard);
 
 void executeClimateImpact(GameBoard *gameBoard);
 void printBoard(GameBoard *gameBoard)
