@@ -153,7 +153,7 @@ int countNeighbours(Individual *currentIndividual, GameBoard *gameBoard, char ty
         if((gameBoard->board[x+1][y].state == 'A') && (gameBoard->board[x+1][y].population->type == type)) numberOfNeighbours++;
         if((gameBoard->board[x+1][y+1].state == 'A') && (gameBoard->board[x+1][y+1].population->type == type)) numberOfNeighbours++;
     }
-    else if(((currentIndividual->xPosition != 0) && (currentIndividual->xPosition != (gameBoard->boardSize-1))) && (currentIndividual->yPosition = 0))
+    else if(((currentIndividual->xPosition != 0) && (currentIndividual->xPosition != (gameBoard->boardSize-1))) && (currentIndividual->yPosition == 0))
     {
         if((gameBoard->board[x-1][y].state == 'A') && (gameBoard->board[x-1][y].population->type == type)) numberOfNeighbours++;
         if((gameBoard->board[x+1][y].state == 'A') && (gameBoard->board[x+1][y].population->type == type)) numberOfNeighbours++;
@@ -301,6 +301,7 @@ void executeClimateImpact(GameBoard *gameBoard);
 int main()
 {
     char key = 'A';
+    unsigned int numberOfGenerations = 0;
     srand(time(NULL));
     unsigned int boardSize = 15;
     unsigned int populationSize = 7;
@@ -310,7 +311,6 @@ int main()
     no1 = generatePopulation(populationSize, 'G', "No1");
     no2 = generatePopulation(populationSize, 'F', "No2");
     no3 = generatePopulation(populationSize, 'N', "No3");
-    no4 = generatePopulation(populationSize, 'F', "No4");
 
     GameBoard *board = malloc(sizeof(GameBoard));
     createBoard(board, boardSize);
@@ -319,16 +319,18 @@ int main()
 
     findSpot(board, no1);
     findSpot(board, no2);
-    //findSpot(board, no3);
- //   findSpot(board, no4);
     printBoard(board);
 
     while(key != 'q')
     {
+        numberOfGenerations++;
         nextGeneration(board, no1, no2, no3);
         printBoard(board);
         key = getchar();
     }
-
+    printf("-------------SUMMARY-------------\n");
+    printf("Individuals in Population type G: %d\n", no1->numberOfIndividuals);
+    printf("Individuals in Population type F: %d\n", no2->numberOfIndividuals);
+    printf("Number of generations: %d\n", numberOfGenerations);
     return 0;
 }
