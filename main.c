@@ -18,8 +18,8 @@ typedef struct _Population
 typedef struct _Individual
 {
     char state;
-    int xPosition;
-    int yPosition;
+    unsigned int xPosition;
+    unsigned int yPosition;
     Population *population;
 } Individual;
 
@@ -123,7 +123,13 @@ void placePopulation(GameBoard *gameBoard, Population *population, unsigned int 
     }
 }
 
-void placeClimateZones(unsigned int boardSize);
+void generateClimateZones(unsigned int boardSize)
+{
+    unsigned int climateZoneSize = boardSize/2;
+
+
+
+}
 int findSpot(GameBoard *gameBoard, Population *population)
 {
     for(unsigned int i = 0; i < gameBoard->boardSize; ++i)
@@ -305,9 +311,8 @@ int main()
     srand(time(NULL));
     unsigned int boardSize = 15;
     unsigned int populationSize = 7;
-    unsigned int numberOfPopulations = 3;
 
-    Population *no1, *no2, *no3, *no4;
+    Population *no1, *no2, *no3;
     no1 = generatePopulation(populationSize, 'G', "No1");
     no2 = generatePopulation(populationSize, 'F', "No2");
     no3 = generatePopulation(populationSize, 'N', "No3");
@@ -326,7 +331,9 @@ int main()
         numberOfGenerations++;
         nextGeneration(board, no1, no2, no3);
         printBoard(board);
+        printf("Press Enter to continue/Enter q to finish: ");
         key = getchar();
+        printf("\n");
     }
     printf("-------------SUMMARY-------------\n");
     printf("Individuals in Population type G: %d\n", no1->numberOfIndividuals);
