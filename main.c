@@ -292,7 +292,6 @@ void nextGeneration(GameBoard *gameBoard, Population *typeGPopulation, Populatio
         {
             temp = &gameBoard->board[i][j];
             evolve(temp, gameBoard, typeGPopulation, typeFPopulation, typeNonePopulation);
-
         }
     }
 }
