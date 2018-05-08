@@ -212,6 +212,7 @@ int countNeighbours(Individual *currentIndividual, GameBoard *gameBoard, char ty
         if((gameBoard->board[x+1][y].state == 'A') && (gameBoard->board[x+1][y].population->type == type)) numberOfNeighbours++;
         if((gameBoard->board[x+1][y+1].state == 'A') && (gameBoard->board[x+1][y+1].population->type == type)) numberOfNeighbours++;
     }
+
     return numberOfNeighbours;
 }
 
@@ -229,7 +230,7 @@ void printBoard(GameBoard *gameBoard)
     }
 }
 
-void evolve(Individual *currentIndividual, GameBoard *gameBoard, Population *typeGPopulation, Population *typeFPopulation)
+void evolve(Individual *currentIndividual, GameBoard *gameBoard, Population *typeGPopulation, Population *typeFPopulation, Population *typeNonePopulation)
 {
     char currentType, otherType;
     unsigned int sameTypeNeighbours, differentTypeNeighbours, numberOfNeighbours;
@@ -278,10 +279,11 @@ void evolve(Individual *currentIndividual, GameBoard *gameBoard, Population *typ
     {
         currentIndividual->state = '.';
         currentIndividual->population->numberOfIndividuals--;
+        currentIndividual->population = typeNonePopulation;
     }
 }
 
-void nextGeneration(GameBoard *gameBoard, Population *typeGPopulation, Population *typeFPopulation)
+void nextGeneration(GameBoard *gameBoard, Population *typeGPopulation, Population *typeFPopulation, Population *typeNonePopulation)
 {
     Individual *temp;
     for(unsigned int i = 0; i < gameBoard->boardSize; ++i)
@@ -289,7 +291,8 @@ void nextGeneration(GameBoard *gameBoard, Population *typeGPopulation, Populatio
         for(unsigned int j = 0; j < gameBoard->boardSize; ++j)
         {
             temp = &gameBoard->board[i][j];
-            evolve(temp, gameBoard, typeGPopulation, typeFPopulation);
+            evolve(temp, gameBoard, typeGPopulation, typeFPopulation, typeNonePopulation);
+
         }
     }
 }
@@ -298,15 +301,18 @@ void executeClimateImpact(GameBoard *gameBoard);
 
 int main()
 {
+    char key = 'A';
     srand(time(NULL));
     unsigned int boardSize = 15;
     unsigned int populationSize = 7;
     unsigned int numberOfPopulations = 3;
+
     Population *no1, *no2, *no3, *no4;
     no1 = generatePopulation(populationSize, 'G', "No1");
     no2 = generatePopulation(populationSize, 'F', "No2");
     no3 = generatePopulation(populationSize, 'N', "No3");
     no4 = generatePopulation(populationSize, 'F', "No4");
+
     GameBoard *board = malloc(sizeof(GameBoard));
     createBoard(board, boardSize);
     emptyGameBoard(board, no3);
@@ -318,8 +324,12 @@ int main()
  //   findSpot(board, no4);
     printBoard(board);
 
-    nextGeneration(board, no1, no2);
-    printBoard(board);
+    while(key != 'q')
+    {
+        nextGeneration(board, no1, no2, no3);
+        printBoard(board);
+        key = getchar();
+    }
 
     return 0;
 }
