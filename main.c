@@ -49,13 +49,16 @@ void createBoard(GameBoard *gameBoard, unsigned int size)
       }
 }
 
-void emptyGameBoard(GameBoard *gameBoard)
+void emptyGameBoard(GameBoard *gameBoard, Population *nonePopulation)
 {
     for(unsigned int i = 0; i < gameBoard->boardSize; ++i)
     {
         for(unsigned int j = 0; j < gameBoard->boardSize; ++j)
         {
            gameBoard->board[i][j].state = '.';
+           gameBoard->board[i][j].xPosition = i;
+           gameBoard->board[i][j].yPosition = j;
+           gameBoard->board[i][j].population = nonePopulation;
         }
     }
 }
@@ -115,8 +118,6 @@ void placePopulation(GameBoard *gameBoard, Population *population, unsigned int 
         {
             gameBoard->board[x][y].state ='A';
             gameBoard->board[x][y].population = population;
-            gameBoard->board[x][y].xPosition = x;
-            gameBoard->board[x][y].yPosition = y;
             ++i;
         }
     }
@@ -143,7 +144,7 @@ int countNeighbours(Individual *currentIndividual, GameBoard *gameBoard, char ty
     unsigned int x = currentIndividual->xPosition;
     unsigned int y = currentIndividual->yPosition;
     int numberOfNeighbours = 0;
-    if((currentIndividual->xPosition == 0) && ((currentIndividual->yPosition != 0) && (currentIndividual->yPosition != gameBoard->boardSize)))
+    if((currentIndividual->xPosition == 0) && ((currentIndividual->yPosition != 0) && (currentIndividual->yPosition != (gameBoard->boardSize-1))))
     {
         // First row
         if((gameBoard->board[x][y+1].state == 'A') && (gameBoard->board[x][y+1].population->type == type)) numberOfNeighbours++;
@@ -152,7 +153,7 @@ int countNeighbours(Individual *currentIndividual, GameBoard *gameBoard, char ty
         if((gameBoard->board[x+1][y].state == 'A') && (gameBoard->board[x+1][y].population->type == type)) numberOfNeighbours++;
         if((gameBoard->board[x+1][y+1].state == 'A') && (gameBoard->board[x+1][y+1].population->type == type)) numberOfNeighbours++;
     }
-    else if(((currentIndividual->xPosition != 0) && (currentIndividual->xPosition != gameBoard->boardSize)) && (currentIndividual->yPosition = 0))
+    else if(((currentIndividual->xPosition != 0) && (currentIndividual->xPosition != (gameBoard->boardSize-1))) && (currentIndividual->yPosition = 0))
     {
         if((gameBoard->board[x-1][y].state == 'A') && (gameBoard->board[x-1][y].population->type == type)) numberOfNeighbours++;
         if((gameBoard->board[x+1][y].state == 'A') && (gameBoard->board[x+1][y].population->type == type)) numberOfNeighbours++;
@@ -160,7 +161,7 @@ int countNeighbours(Individual *currentIndividual, GameBoard *gameBoard, char ty
         if((gameBoard->board[x][y+1].state == 'A') && (gameBoard->board[x][y+1].population->type == type)) numberOfNeighbours++;
         if((gameBoard->board[x+1][y+1].state == 'A') && (gameBoard->board[x+1][y+1].population->type == type)) numberOfNeighbours++;
     }
-    else if((currentIndividual->xPosition == gameBoard->boardSize) && ((currentIndividual->yPosition != 0) && (currentIndividual->yPosition != gameBoard->boardSize)))
+    else if((currentIndividual->xPosition == (gameBoard->boardSize-1)) && ((currentIndividual->yPosition != 0) && (currentIndividual->yPosition != (gameBoard->boardSize-1))))
     {
         if((gameBoard->board[x][y-1].state == 'A') && (gameBoard->board[x][y-1].population->type == type)) numberOfNeighbours++;
         if((gameBoard->board[x][y+1].state == 'A') && (gameBoard->board[x][y+1].population->type == type)) numberOfNeighbours++;
@@ -168,7 +169,7 @@ int countNeighbours(Individual *currentIndividual, GameBoard *gameBoard, char ty
         if((gameBoard->board[x-1][y].state == 'A') && (gameBoard->board[x-1][y].population->type == type)) numberOfNeighbours++;
         if((gameBoard->board[x-1][y+1].state == 'A') && (gameBoard->board[x-1][y+1].population->type == type)) numberOfNeighbours++;
     }
-    else if(((currentIndividual->xPosition != 0) && (currentIndividual->xPosition != gameBoard->boardSize)) && (currentIndividual->yPosition == gameBoard->boardSize))
+    else if(((currentIndividual->xPosition != 0) && (currentIndividual->xPosition != (gameBoard->boardSize-1))) && (currentIndividual->yPosition == (gameBoard->boardSize-1)))
     {
         if((gameBoard->board[x-1][y].state == 'A') && (gameBoard->board[x-1][y].population->type == type)) numberOfNeighbours++;
         if((gameBoard->board[x+1][y].state == 'A') && (gameBoard->board[x+1][y].population->type == type)) numberOfNeighbours++;
@@ -176,17 +177,29 @@ int countNeighbours(Individual *currentIndividual, GameBoard *gameBoard, char ty
         if((gameBoard->board[x][y-1].state == 'A') && (gameBoard->board[x][y-1].population->type == type)) numberOfNeighbours++;
         if((gameBoard->board[x+1][y-1].state == 'A') && (gameBoard->board[x+1][y-1].population->type == type)) numberOfNeighbours++;
     }
-    else if((currentIndividual->xPosition == gameBoard->boardSize) && (currentIndividual->yPosition == gameBoard->boardSize))
+    else if((currentIndividual->xPosition == (gameBoard->boardSize-1)) && (currentIndividual->yPosition == (gameBoard->boardSize-1)))
     {
         if((gameBoard->board[x-1][y].state == 'A') && (gameBoard->board[x-1][y].population->type == type)) numberOfNeighbours++;
         if((gameBoard->board[x-1][y-1].state == 'A') && (gameBoard->board[x-1][y-1].population->type == type)) numberOfNeighbours++;
         if((gameBoard->board[x][y-1].state == 'A') && (gameBoard->board[x][y-1].population->type == type)) numberOfNeighbours++;
     }
-    else if((currentIndividual->xPosition = 0) && (currentIndividual->yPosition == 0))
+    else if((currentIndividual->xPosition == 0) && (currentIndividual->yPosition == 0))
     {
         if((gameBoard->board[x+1][y].state == 'A') && (gameBoard->board[x+1][y].population->type == type)) numberOfNeighbours++;
         if((gameBoard->board[x+1][y+1].state == 'A') && (gameBoard->board[x+1][y+1].population->type == type)) numberOfNeighbours++;
         if((gameBoard->board[x][y+1].state == 'A') && (gameBoard->board[x][y+1].population->type == type)) numberOfNeighbours++;
+    }
+    else if((currentIndividual->xPosition == 0) && (currentIndividual->yPosition == (gameBoard->boardSize-1)))
+    {
+        if((gameBoard->board[x+1][y].state == 'A') && (gameBoard->board[x+1][y].population->type == type)) numberOfNeighbours++;
+        if((gameBoard->board[x+1][y-1].state == 'A') && (gameBoard->board[x+1][y-1].population->type == type)) numberOfNeighbours++;
+        if((gameBoard->board[x][y-1].state == 'A') && (gameBoard->board[x][y-1].population->type == type)) numberOfNeighbours++;
+    }
+    else if((currentIndividual->xPosition == (gameBoard->boardSize-1)) && (currentIndividual->yPosition == 0))
+    {
+        if((gameBoard->board[x][y+1].state == 'A') && (gameBoard->board[x][y+1].population->type == type)) numberOfNeighbours++;
+        if((gameBoard->board[x-1][y+1].state == 'A') && (gameBoard->board[x-1][y+1].population->type == type)) numberOfNeighbours++;
+        if((gameBoard->board[x-1][y].state == 'A') && (gameBoard->board[x-1][y].population->type == type)) numberOfNeighbours++;
     }
     else
     {
@@ -200,6 +213,20 @@ int countNeighbours(Individual *currentIndividual, GameBoard *gameBoard, char ty
         if((gameBoard->board[x+1][y+1].state == 'A') && (gameBoard->board[x+1][y+1].population->type == type)) numberOfNeighbours++;
     }
     return numberOfNeighbours;
+}
+
+void printBoard(GameBoard *gameBoard)
+{
+    printf("\n");
+    printf("-----------------------------------------\n");
+    for(unsigned int i = 0; i < gameBoard->boardSize; ++i)
+    {
+        for(unsigned int j = 0; j < gameBoard->boardSize; ++j)
+        {
+           printf("%c ",gameBoard->board[i][j].state);
+        }
+        printf("\n");
+    }
 }
 
 void evolve(Individual *currentIndividual, GameBoard *gameBoard, Population *typeGPopulation, Population *typeFPopulation)
@@ -254,24 +281,20 @@ void evolve(Individual *currentIndividual, GameBoard *gameBoard, Population *typ
     }
 }
 
-void nextGeneration(GameBoard *gameBoard);
-
-void executeClimateImpact(GameBoard *gameBoard);
-void printBoard(GameBoard *gameBoard)
+void nextGeneration(GameBoard *gameBoard, Population *typeGPopulation, Population *typeFPopulation)
 {
-    printf("\n");
-    printf("-----------------------------------------\n");
+    Individual *temp;
     for(unsigned int i = 0; i < gameBoard->boardSize; ++i)
     {
         for(unsigned int j = 0; j < gameBoard->boardSize; ++j)
         {
-
-           printf("%c ",gameBoard->board[i][j].state);
-
+            temp = &gameBoard->board[i][j];
+            evolve(temp, gameBoard, typeGPopulation, typeFPopulation);
         }
-        printf("\n");
     }
 }
+
+void executeClimateImpact(GameBoard *gameBoard);
 
 int main()
 {
@@ -279,22 +302,23 @@ int main()
     unsigned int boardSize = 15;
     unsigned int populationSize = 7;
     unsigned int numberOfPopulations = 3;
-
     Population *no1, *no2, *no3, *no4;
     no1 = generatePopulation(populationSize, 'G', "No1");
-    no2 = generatePopulation(populationSize, 'G', "No2");
-    no3 = generatePopulation(populationSize, 'F', "No3");
+    no2 = generatePopulation(populationSize, 'F', "No2");
+    no3 = generatePopulation(populationSize, 'N', "No3");
     no4 = generatePopulation(populationSize, 'F', "No4");
     GameBoard *board = malloc(sizeof(GameBoard));
     createBoard(board, boardSize);
-    emptyGameBoard(board);
+    emptyGameBoard(board, no3);
     printBoard(board);
-
 
     findSpot(board, no1);
     findSpot(board, no2);
-    findSpot(board, no3);
+    //findSpot(board, no3);
  //   findSpot(board, no4);
+    printBoard(board);
+
+    nextGeneration(board, no1, no2);
     printBoard(board);
 
     return 0;
