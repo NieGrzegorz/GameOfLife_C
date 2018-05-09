@@ -315,7 +315,80 @@ void nextGeneration(GameBoard *gameBoard, Population *typeGPopulation, Populatio
     }
 }
 
-void executeClimateImpact(GameBoard *gameBoard);
+void executeClimateImpact(GameBoard *gameBoard, ClimateZone **climateZones, Population *noneTypePopulation, Population *typeGPopulation)
+{
+    for(unsigned int i = 0; i < CLIMATEZONENUMBER; ++i )
+    {
+        if(climateZones[i]->zoneType == "C")
+        {
+            int killStreak = 0;
+            while(killStreak < 2)
+            {
+                int x, y;
+                x = (rand()%climateZones[i]->size)+climateZones[i]->startRow;
+                y = (rand()%climateZones[i]->size)+climateZones[i]->startCol;
+
+                if(gameBoard->board[x][y].state == 'A')
+                {
+                    gameBoard->board[x][y].state == '.';
+                    gameBoard->board[x][y].population = noneTypePopulation;
+                    ++killStreak;
+                }
+            }
+        }
+        else if(climateZones[i]->zoneType == "H")
+        {
+            int killStreak = 0;
+            while(killStreak < 1)
+            {
+                int x, y;
+                x = (rand()%climateZones[i]->size)+climateZones[i]->startRow;
+                y = (rand()%climateZones[i]->size)+climateZones[i]->startCol;
+
+                if(gameBoard->board[x][y].state == 'A')
+                {
+                    gameBoard->board[x][y].state == '.';
+                    gameBoard->board[x][y].population = noneTypePopulation;
+                    ++killStreak;
+                }
+            }
+        }
+        else if(climateZones[i]->zoneType == "M")
+        {
+            int addCount = 0;
+            while(addCount < 2)
+            {
+                int x, y;
+                x = (rand()%climateZones[i]->size)+climateZones[i]->startRow;
+                y = (rand()%climateZones[i]->size)+climateZones[i]->startCol;
+
+                if(gameBoard->board[x][y].state == '.')
+                {
+                    gameBoard->board[x][y].state == 'A';
+                    gameBoard->board[x][y].population = typeGPopulation;
+                    ++addCount;
+                }
+            }
+        }
+        else if(climateZones[i]->zoneType == "S")
+        {
+            int addCount = 0;
+            while(addCount < 1)
+            {
+                int x, y;
+                x = (rand()%climateZones[i]->size)+climateZones[i]->startRow;
+                y = (rand()%climateZones[i]->size)+climateZones[i]->startCol;
+
+                if(gameBoard->board[x][y].state == '.')
+                {
+                    gameBoard->board[x][y].state == 'A';
+                    gameBoard->board[x][y].population = typeGPopulation;
+                    ++addCount;
+                }
+            }
+        }
+    }
+}
 
 int main()
 {
@@ -335,6 +408,7 @@ int main()
     GameBoard *board = malloc(sizeof(GameBoard));
     createBoard(board, boardSize);
     emptyGameBoard(board, no3);
+    placeClimateZones(climateZones, board);
     printBoard(board);
 
     findSpot(board, no1);
@@ -343,7 +417,11 @@ int main()
 
     while(key != 'q')
     {
-        numberOfGenerations++;
+        ++numberOfGenerations;
+        if((numberOfGenerations%5) == 0)
+        {
+            executeClimateImpact(board, climateZones, no3, no1);
+        }
         nextGeneration(board, no1, no2, no3);
         printBoard(board);
         printf("Press Enter to continue/Enter q to finish: ");
