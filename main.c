@@ -33,8 +33,7 @@ typedef struct _ClimateZone
 {
     unsigned int startRow;
     unsigned int startCol;
-    unsigned int width;
-    unsigned int height;
+    unsigned int size;
     char zoneType;
 } ClimateZone;
 
@@ -123,13 +122,27 @@ void placePopulation(GameBoard *gameBoard, Population *population, unsigned int 
     }
 }
 
-void generateClimateZones(unsigned int boardSize)
+void generateClimateZone(ClimateZone *zone, unsigned int startRow, unsigned int startCol, unsigned int size, char type)
 {
-    unsigned int climateZoneSize = boardSize/2;
-
-
-
+    zone->zoneType = type;
+    zone->startCol = startCol;
+    zone->startRow = startRow;
+    zone->size = size;
 }
+
+void placeClimateZones(ClimateZone **climateZones, GameBoard *gameBoard)
+{
+    unsigned int climateZoneSize = gameBoard->boardSize/2;
+    for(unsigned int i = 0; i < CLIMATEZONENUMBER; ++i)
+    {
+        climateZones[i] = malloc(sizeof(ClimateZone*));
+    }
+    generateClimateZone(climateZones[0], 0, 0, climateZoneSize, 'C');
+    generateClimateZone(climateZones[1], climateZoneSize, 0, climateZoneSize, 'W');
+    generateClimateZone(climateZones[2], 0, climateZoneSize, climateZoneSize, 'S');
+    generateClimateZone(climateZones[3], climateZoneSize, climateZoneSize, climateZoneSize, 'M');
+}
+
 int findSpot(GameBoard *gameBoard, Population *population)
 {
     for(unsigned int i = 0; i < gameBoard->boardSize; ++i)
@@ -311,6 +324,8 @@ int main()
     srand(time(NULL));
     unsigned int boardSize = 15;
     unsigned int populationSize = 7;
+    ClimateZone **climateZones = malloc(CLIMATEZONENUMBER*sizeof(ClimateZone*));
+
 
     Population *no1, *no2, *no3;
     no1 = generatePopulation(populationSize, 'G', "No1");
