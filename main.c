@@ -130,17 +130,37 @@ void generateClimateZone(ClimateZone *zone, unsigned int startRow, unsigned int 
     zone->size = size;
 }
 
+char randomClimatSpotGenerator(char *generated)
+{
+    char retValue;
+    int randIndex;
+    int randomized = 0;
+    while(randomized != 1)
+    {
+        randIndex = rand()%CLIMATEZONENUMBER;
+        if(generated[randIndex] != '1')
+        {
+            retValue = generated[randIndex];
+            generated[randIndex] = '1';
+            randomized = 1;
+        }
+    }
+    return retValue;
+}
+
 void placeClimateZones(ClimateZone **climateZones, GameBoard *gameBoard)
 {
+    char generated[CLIMATEZONENUMBER] = {'C','H','S','M'};
     unsigned int climateZoneSize = gameBoard->boardSize/2;
     for(unsigned int i = 0; i < CLIMATEZONENUMBER; ++i)
     {
         climateZones[i] = malloc(sizeof(ClimateZone*));
     }
-    generateClimateZone(climateZones[0], 0, 0, climateZoneSize, 'C');
-    generateClimateZone(climateZones[1], climateZoneSize, 0, climateZoneSize, 'W');
-    generateClimateZone(climateZones[2], 0, climateZoneSize, climateZoneSize, 'S');
-    generateClimateZone(climateZones[3], climateZoneSize, climateZoneSize, climateZoneSize, 'M');
+
+    generateClimateZone(climateZones[0], 0, 0, climateZoneSize, randomClimatSpotGenerator(generated));
+    generateClimateZone(climateZones[1], climateZoneSize, 0, climateZoneSize, randomClimatSpotGenerator(generated));
+    generateClimateZone(climateZones[2], 0, climateZoneSize, climateZoneSize, randomClimatSpotGenerator(generated));
+    generateClimateZone(climateZones[3], climateZoneSize, climateZoneSize, climateZoneSize, randomClimatSpotGenerator(generated));
 }
 
 int findSpot(GameBoard *gameBoard, Population *population)
@@ -158,6 +178,21 @@ int findSpot(GameBoard *gameBoard, Population *population)
     }
     return -1;
 }
+
+int countAliveIndividuals(GameBoard *gameBoard, unsigned int xPos, unsigned int yPos, unsigned int areaSize)
+{
+    int aliveCount = 0;
+
+    for(unsigned int i = xPos; i < (xPos+areaSize); ++i)
+    {
+        for(unsigned int j = yPos; j < (yPos+areaSize); ++j)
+        {
+            if(gameBoard->board[i][j].state == 'A') ++aliveCount;
+        }
+    }
+    return aliveCount;
+}
+
 int countNeighbours(Individual *currentIndividual, GameBoard *gameBoard, char type)
 {
     unsigned int x = currentIndividual->xPosition;
@@ -319,7 +354,7 @@ void executeClimateImpact(GameBoard *gameBoard, ClimateZone **climateZones, Popu
 {
     for(unsigned int i = 0; i < CLIMATEZONENUMBER; ++i )
     {
-        if(climateZones[i]->zoneType == "C")
+        if((climateZones[i]->zoneType == 'C') && (countAliveIndividuals(gameBoard, climateZones[i]->startRow, climateZones[i]->startCol, climateZones[i]->size) >= 2))
         {
             int killStreak = 0;
             while(killStreak < 2)
@@ -330,13 +365,13 @@ void executeClimateImpact(GameBoard *gameBoard, ClimateZone **climateZones, Popu
 
                 if(gameBoard->board[x][y].state == 'A')
                 {
-                    gameBoard->board[x][y].state == '.';
+                    gameBoard->board[x][y].state = '.';
                     gameBoard->board[x][y].population = noneTypePopulation;
                     ++killStreak;
                 }
             }
         }
-        else if(climateZones[i]->zoneType == "H")
+        else if((climateZones[i]->zoneType == 'H')&&(countAliveIndividuals(gameBoard, climateZones[i]->startRow, climateZones[i]->startCol, climateZones[i]->size) >= 1))
         {
             int killStreak = 0;
             while(killStreak < 1)
@@ -347,13 +382,13 @@ void executeClimateImpact(GameBoard *gameBoard, ClimateZone **climateZones, Popu
 
                 if(gameBoard->board[x][y].state == 'A')
                 {
-                    gameBoard->board[x][y].state == '.';
+                    gameBoard->board[x][y].state = '.';
                     gameBoard->board[x][y].population = noneTypePopulation;
                     ++killStreak;
                 }
             }
         }
-        else if(climateZones[i]->zoneType == "M")
+        else if(climateZones[i]->zoneType == 'M')
         {
             int addCount = 0;
             while(addCount < 2)
@@ -364,13 +399,14 @@ void executeClimateImpact(GameBoard *gameBoard, ClimateZone **climateZones, Popu
 
                 if(gameBoard->board[x][y].state == '.')
                 {
-                    gameBoard->board[x][y].state == 'A';
+                    gameBoard->board[x][y].state = 'A';
                     gameBoard->board[x][y].population = typeGPopulation;
+                    gameBoard->board[x][y].population->numberOfIndividuals++;
                     ++addCount;
                 }
             }
         }
-        else if(climateZones[i]->zoneType == "S")
+        else if(climateZones[i]->zoneType == 'S')
         {
             int addCount = 0;
             while(addCount < 1)
@@ -381,8 +417,9 @@ void executeClimateImpact(GameBoard *gameBoard, ClimateZone **climateZones, Popu
 
                 if(gameBoard->board[x][y].state == '.')
                 {
-                    gameBoard->board[x][y].state == 'A';
+                    gameBoard->board[x][y].state = 'A';
                     gameBoard->board[x][y].population = typeGPopulation;
+                    gameBoard->board[x][y].population->numberOfIndividuals++;
                     ++addCount;
                 }
             }
