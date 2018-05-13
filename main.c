@@ -4,8 +4,6 @@
 
 #define CLIMATEZONENUMBER 4
 #define MINIMALPOPSIZE 4
-#define POPULATION_TYPE_G 'G'
-#define POPULATION_TYPE_F 'F'
 
 typedef struct _Population
 {
@@ -466,8 +464,17 @@ int main()
         printf("\n");
     }
     printf("-------------SUMMARY-------------\n");
-    printf("Individuals in Population type G: %d\n", no1->numberOfIndividuals);
-    printf("Individuals in Population type F: %d\n", no2->numberOfIndividuals);
     printf("Number of generations: %d\n", numberOfGenerations);
+
+    free(board);
+    for(unsigned int i = 0; i < CLIMATEZONENUMBER; ++i)
+    {
+        free(climateZones[i]);
+    }
+    free(climateZones);
+
+    free(no1);
+    free(no2);
+    free(no3);
     return 0;
 }
